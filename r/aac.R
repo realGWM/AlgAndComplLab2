@@ -1,0 +1,11 @@
+normal_sizes <- scan("normal_sizes.txt", what = "integer", sep = " ")
+normal_totals <- scan("normal_totals.txt", what = "integer", sep = " ")
+wide_sizes <- scan("wide_sizes.txt", what = "integer", sep = " ")
+wide_totals <- scan("wide_totals.txt", what = "integer", sep = " ")
+narrow_sizes <- scan("narrow_sizes.txt", what = "integer", sep = " ")
+narrow_totals <- scan("narrow_totals.txt", what = "integer", sep = " ")
+name <- "PURPLE [-n;n] (normal)\nORANGE [-10n;10n] (wide)\nBLUE [0;n/2] (narrow)"
+options(scipen=5)
+plot(normal_sizes[-1], normal_totals[-1], "l", col = "purple", main=name, xlab="Array size", ylab="Time")
+lines(wide_sizes[-1], wide_totals[-1], "l", col = "orange")
+lines(narrow_sizes[-1], narrow_totals[-1], "l", col = "blue")
