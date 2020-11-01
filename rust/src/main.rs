@@ -38,7 +38,7 @@ fn main() {
 }
 
 //TODO: replace (min, max, step) with some kind of a range or an iterator?..
-//F is a function that calculates a range of random value for a given array size
+//F is a function that calculates a range of random values for a given array size
 //Returns 2 vectors to be processed by the R language:
 //A vector of sizes
 //A vector of running times for each size
