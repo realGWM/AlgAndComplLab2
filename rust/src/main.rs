@@ -10,6 +10,22 @@ const MIN:   usize = 0;           //min array size
 const MAX:   usize = 100_000;     //max array size
 const STEP:  usize = 1_000;       //step for incrementing array size
 
+
+fn gen_sizes() -> core::iter::StepBy<std::ops::RangeInclusive<usize>> {
+    let min = if MIN != 0 { MIN } else { MIN + STEP };
+
+    (min..=MAX).step_by(STEP)
+}
+
+
+fn worker_gen_sizes<F>(rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
+    where F: Fn(usize) -> Uniform<i32>
+{
+    worker(gen_sizes(), rng, f)
+}
+
+
+
 fn main() {
     let program_start = Instant::now();
 
@@ -21,11 +37,11 @@ fn main() {
     let narrow_dist = |size: usize| Uniform::new_inclusive(                  0, (size as i32) / 2);
 
     println!("Testing [-n;n]...");
-    let (normal_sizes, normal_totals) = worker(MIN, MAX, STEP, &mut rng, normal_dist);
+    let (normal_sizes, normal_totals) = worker_gen_sizes(&mut rng, normal_dist);
     println!("Testing [-10n;10n]...");
-    let (wide_sizes,   wide_totals)   = worker(MIN, MAX, STEP, &mut rng, wide_dist);
+    let (wide_sizes,   wide_totals)   = worker_gen_sizes(&mut rng, wide_dist);
     println!("Testing [0;n/2]...");
-    let (narrow_sizes, narrow_totals) = worker(MIN, MAX, STEP, &mut rng, narrow_dist);
+    let (narrow_sizes, narrow_totals) = worker_gen_sizes(&mut rng, narrow_dist);
 
     //Sizes are actually the same everytime, so they could be saved just one time, but I'm kinda lazy...
     save_results(&normal_sizes, &normal_totals, "../r/normal_sizes.txt", "../r/normal_totals.txt");
@@ -37,12 +53,11 @@ fn main() {
     println!("Program has been running for {} seconds!..", time_taken);
 }
 
-//TODO: replace (min, max, step) with some kind of a range or an iterator?..
 //F is a function that calculates a range of random values for a given array size
 //Returns 2 vectors to be processed by the R language:
 //A vector of sizes
 //A vector of running times for each size
-fn worker<F>(min: usize, max: usize, step: usize, rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
+fn worker<F>(sizes_iter: core::iter::StepBy<std::ops::RangeInclusive<usize>>, rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
     where F: Fn(usize) -> Uniform<i32>
 {
     //Compiler is bad. Compiler is REALLY BAD. Compiler optimizes-out the loop completely without this. Don't be like compiler.
@@ -51,11 +66,11 @@ fn worker<F>(min: usize, max: usize, step: usize, rng: &mut ThreadRng, f: F) -> 
     let mut sizes: Vec<usize> = Vec::new();
     let mut totals: Vec<u128> = Vec::new();
 
-    for size in (min..=max).step_by(step) {        
+    for size in sizes_iter {
         let dist = f(size);
         let mut total: u128 = 0;
         let mut haystack: Vec<i32> = vec![0; size];
-        
+
         for _ in 0..TIMES {
 
             for i in haystack.iter_mut() {
