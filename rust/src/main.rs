@@ -2,29 +2,26 @@ use rand::rngs::ThreadRng;
 use rand::distributions::{Distribution, Uniform};
 use std::time::Instant;
 use std::fs::File;
-use std::io::prelude::*;
-use std::io;
+use std::io::{self, prelude::*};
+use core::iter::StepBy;
+use std::ops::RangeInclusive;
 
 const TIMES: usize = 2_000;       //how many times do we test each size in order to minimize statistical error
 const MIN:   usize = 0;           //min array size
 const MAX:   usize = 100_000;     //max array size
 const STEP:  usize = 1_000;       //step for incrementing array size
 
-
-fn gen_sizes() -> core::iter::StepBy<std::ops::RangeInclusive<usize>> {
+fn gen_sizes() -> StepBy<RangeInclusive<usize>> {
     let min = if MIN != 0 { MIN } else { MIN + STEP };
 
     (min..=MAX).step_by(STEP)
 }
-
 
 fn worker_gen_sizes<F>(rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
     where F: Fn(usize) -> Uniform<i32>
 {
     worker(gen_sizes(), rng, f)
 }
-
-
 
 fn main() {
     let program_start = Instant::now();
@@ -57,7 +54,7 @@ fn main() {
 //Returns 2 vectors to be processed by the R language:
 //A vector of sizes
 //A vector of running times for each size
-fn worker<F>(sizes_iter: core::iter::StepBy<std::ops::RangeInclusive<usize>>, rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
+fn worker<F>(sizes_iter: StepBy<RangeInclusive<usize>>, rng: &mut ThreadRng, f: F) -> (Vec<usize>, Vec<u128>)
     where F: Fn(usize) -> Uniform<i32>
 {
     //Compiler is bad. Compiler is REALLY BAD. Compiler optimizes-out the loop completely without this. Don't be like compiler.
